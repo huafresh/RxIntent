@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.hua.rxintent">
+    <application>
+        <!-- Android 7.0 文件共享配置-->
+        <provider
+            android:name=".CustomFileProvider"
+            android:authorities="${applicationId}.rxintent.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/rxintent_file_paths" />
+        </provider>
+    </application>
+</manifest>
