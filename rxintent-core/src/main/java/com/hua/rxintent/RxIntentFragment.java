@@ -3,29 +3,15 @@ package com.hua.rxintent;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.FileProvider;
-import android.widget.Toast;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 
-import java.io.File;
-import java.io.IOException;
-
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.subjects.PublishSubject;
-
-import static android.os.Environment.MEDIA_MOUNTED;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * @author hua
@@ -35,71 +21,80 @@ import static android.os.Environment.MEDIA_MOUNTED;
 @SuppressWarnings("ConstantConditions")
 public class RxIntentFragment extends Fragment {
 
-    /** 拍照后原始图片存储的名称 */
+    /**
+     * 拍照后原始图片存储的名称
+     */
     private static final String TEMP_FILE_RELATIVE_PATH = "camera_temp_file.jpg";
-    private String cameraPath;
-
-    /** 裁剪后的图片存储的相对路径 */
-    static final String CROP_FILE_PATH = "/cache/crop_file.jpg";
-
-    public static final int INTENT_TYPE_CAMERA = 0;
-    public static final int INTENT_TYPE_ALBUM = 1;
-    public static final int INTENT_TYPE_CROP = 2;
+    private static final String TAG_RX_INTENT_FRAGMENT = "tag_rx_intent_fragment";
+    static final String KEY_INTENT_TYPE = "key_intent_type";
     private Activity activity;
+    private BlockingQueue<IntentRequest> requestQueue = new ArrayBlockingQueue<>(5);
+    private boolean running = false;
+    private SendThread sendThread = new SendThread();
 
-    static PublishSubject<RxIntentResult> resultSubject = PublishSubject.create();
+    private class SendThread extends Thread {
+        private IntentRequest request;
+
+        @Override
+        public void run() {
+            while (running) {
+                try {
+                    this.request = null;
+                    IntentRequest request = requestQueue.take();
+                    startActivityForResult(this.request.getIntent(), this.request.getType());
+                    this.request = request;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        IntentRequest getRequest(){
+            return request;
+        }
+    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.activity = (Activity) context;
+        sendThread = new SendThread();
+        sendThread.start();
+        running = true;
     }
 
-    public static RxIntentFragment newInstance() {
-        Bundle args = new Bundle();
-        RxIntentFragment fragment = new RxIntentFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    public Observable<String> openCamera() {
-        return Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
-                startActivityForResult(IntentUtil.getCameraIntent(activity), INTENT_TYPE_CAMERA);
-                final Disposable disposable = resultSubject.subscribe(new RxIntentConsumer());
-            }
-        });
-    }
-
-    class RxIntentConsumer implements Consumer<RxIntentResult>{
-
-
-        @Override
-        public void accept(RxIntentResult intentResult) throws Exception {
-            if (INTENT_TYPE_CAMERA == intentResult.type) {
-                //emitter.onNext(IntentUtil.getCameraPath(activity));
-            }
+    static void openByFragment(FragmentActivity activity, IntentRequest request) {
+        FragmentManager manager = activity.getSupportFragmentManager();
+        RxIntentFragment rxFragment = (RxIntentFragment) manager.findFragmentByTag(TAG_RX_INTENT_FRAGMENT);
+        if (rxFragment == null) {
+            rxFragment = new RxIntentFragment();
+            manager.beginTransaction().add(rxFragment, TAG_RX_INTENT_FRAGMENT).commit();
         }
+        rxFragment.sendIntentRequest(request);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        running = false;
+        sendThread.interrupt();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case INTENT_TYPE_CAMERA:
-                resultSubject.onNext(new RxIntentResult(INTENT_TYPE_CAMERA, data));
-                break;
-            case INTENT_TYPE_ALBUM:
-                resultSubject.onNext(new RxIntentResult(INTENT_TYPE_ALBUM, data));
-                break;
-            case INTENT_TYPE_CROP:
-                resultSubject.onNext(new RxIntentResult(INTENT_TYPE_CROP, data));
-                break;
-            default:
-                break;
+        IntentRequest request = sendThread.getRequest();
+        if (request != null) {
+            if (resultCode == Activity.RESULT_OK) {
+                request.getCallback().onResult(data);
+            } else {
+                request.getCallback().onResult(null);
+            }
         }
-
     }
+
+    void sendIntentRequest(IntentRequest request) {
+        requestQueue.add(request);
+    }
+
 }

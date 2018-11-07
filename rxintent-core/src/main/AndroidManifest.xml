@@ -3,7 +3,7 @@
     <application>
         <!-- Android 7.0 文件共享配置-->
         <provider
-            android:name=".CustomFileProvider"
+            android:name=".RxIntentFileProvider"
             android:authorities="${applicationId}.rxintent.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

@@ -7,5 +7,5 @@ import android.support.v4.content.FileProvider;
  * @version 1.0
  * @date 2018/11/4
  */
-public class CustomFileProvider extends FileProvider {
+public class RxIntentFileProvider extends FileProvider {
 }
