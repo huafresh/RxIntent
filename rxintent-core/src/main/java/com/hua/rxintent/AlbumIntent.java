@@ -38,9 +38,9 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
     }
 
     @Override
-    public String convert(Intent original) {
+    public String handle(Intent result) {
         if (context != null) {
-            Uri uri = original.getData();
+            Uri uri = result.getData();
             return resolveUriReturnByAlbum(context, uri);
         }
         return null;

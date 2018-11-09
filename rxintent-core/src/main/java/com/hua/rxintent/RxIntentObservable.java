@@ -5,7 +5,6 @@ import android.content.Intent;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 
 /**
  * @author hua
@@ -15,15 +14,15 @@ import io.reactivex.functions.Function;
 public class RxIntentObservable<T> {
     private Observable<Intent> source;
     private Intent intent;
-    private IConverter<Intent, T> converter;
+    private IResultHandler<Intent, T> converter;
 
     public RxIntentObservable(Observable<Intent> source, Intent intent) {
         this.source = source;
         this.intent = intent;
     }
 
-    public RxIntentObservable<T> beforeStart(IConverter<Intent, Intent> converter) {
-        this.intent = converter.convert(intent);
+    public RxIntentObservable<T> beforeStart(IResultHandler<Intent, Intent> converter) {
+        this.intent = converter.handle(intent);
         return this;
     }
 
@@ -36,7 +35,7 @@ public class RxIntentObservable<T> {
         });
     }
 
-     RxIntentObservable<T> setConverter(IConverter<Intent, T> converter) {
+     RxIntentObservable<T> setConverter(IResultHandler<Intent, T> converter) {
         this.converter = converter;
         return this;
     }
@@ -45,7 +44,7 @@ public class RxIntentObservable<T> {
         return source.subscribe(new Consumer<Intent>() {
             @Override
             public void accept(Intent intent) throws Exception {
-                result.onResult(converter.convert(intent));
+                result.onResult(converter.handle(intent));
             }
         });
     }

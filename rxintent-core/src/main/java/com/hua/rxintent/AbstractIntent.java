@@ -8,7 +8,7 @@ import android.content.Intent;
  * @version 2018/11/8 11:03
  */
 
-abstract class AbstractIntent<R, T> implements IConverter<R, T> {
+abstract class AbstractIntent<R, T> implements IResultHandler<R, T> {
     abstract Intent build(Context context);
     abstract String[] needPermissions();
 }

@@ -45,7 +45,7 @@ class CameraIntent extends AbstractIntent<Intent, String> {
 
 
     @Override
-    public String convert(Intent original) {
-        return original != null ? savePath : null;
+    public String handle(Intent result) {
+        return result != null ? savePath : null;
     }
 }

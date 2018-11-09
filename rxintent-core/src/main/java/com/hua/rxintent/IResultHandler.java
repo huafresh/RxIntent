@@ -7,9 +7,9 @@ import android.content.Intent;
  * @version 2018/11/7 17:17
  */
 
-public interface IConverter<R, T> {
+public interface IResultHandler<R, T> {
     /**
      * 对象R转T
      */
-    T convert(R original);
+    T handle(R result);
 }
