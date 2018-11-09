@@ -1,8 +1,7 @@
 package com.hua.rxintent;
 
-import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 
 import io.reactivex.Observable;
@@ -16,35 +15,36 @@ import io.reactivex.ObservableOnSubscribe;
  */
 public class RxIntent {
 
-    static final int INTENT_TYPE_CAMERA = 0;
-    static final int INTENT_TYPE_ALBUM = 1;
-    static final int INTENT_TYPE_CROP = 2;
+    public static RxIntentObservable<String> openCamera(final FragmentActivity activity) {
+        return openInternal(activity, new CameraIntent());
+    }
 
-    public static RxIntentObservable openCamera(final FragmentActivity activity) {
-        IIntentBuilder builder = getIntentBuilderByType(INTENT_TYPE_CAMERA);
-        final Intent intent = builder.build(activity);
+    public static RxIntentObservable<String> openAlbum(final FragmentActivity activity) {
+        return openInternal(activity, new AlbumIntent());
+    }
+
+    public static RxIntentObservable<String> openCrop(final FragmentActivity activity, String filePath) {
+        return openInternal(activity, new CropIntent(filePath));
+    }
+
+    @NonNull
+    private static <T> RxIntentObservable<T> openInternal(final FragmentActivity activity,
+                                                          final AbstractIntent<Intent, T> abstractIntent) {
+        final Intent intent = abstractIntent.build(activity);
         Observable<Intent> source = Observable.create(new ObservableOnSubscribe<Intent>() {
             @Override
             public void subscribe(final ObservableEmitter<Intent> emitter) throws Exception {
-                final IntentRequest request = new IntentRequest(INTENT_TYPE_CAMERA, intent, new IResult() {
+                IResult<Intent> result = new IResult<Intent>() {
                     @Override
-                    public void onResult(@Nullable Intent data) {
+                    public void onResult(Intent data) {
                         emitter.onNext(data);
                     }
-                });
+                };
+                final IntentRequest request = new IntentRequest(intent, result, abstractIntent.needPermissions());
                 RxIntentFragment.openByFragment(activity, request);
             }
         });
-        return new RxIntentObservable(source);
-    }
-
-    static IIntentBuilder getIntentBuilderByType(int type) {
-        switch (type) {
-            case INTENT_TYPE_CAMERA:
-                return new CameraIntent();
-            default:
-                throw new IllegalArgumentException("unSupport intent type");
-        }
+        return new RxIntentObservable<T>(source, intent).setConverter(abstractIntent);
     }
 
 }

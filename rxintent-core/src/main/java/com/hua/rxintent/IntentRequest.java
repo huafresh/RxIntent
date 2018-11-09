@@ -8,25 +8,28 @@ import android.content.Intent;
  */
 
 class IntentRequest {
-    private int type;
     private Intent intent;
-    private IResult callback;
+    private String[] permissions;
+    private IResult<Intent> callback;
+    int requestCode;
 
-    IntentRequest(int type, Intent intent, IResult callback) {
-        this.type = type;
+    IntentRequest(Intent intent,
+                  IResult<Intent> callback,
+                  String[] permissions) {
         this.intent = intent;
         this.callback = callback;
+        this.permissions = permissions;
     }
 
-    public int getType() {
-        return type;
-    }
-
-    public Intent getIntent() {
+    Intent getIntent() {
         return intent;
     }
 
-    public IResult getCallback() {
+    IResult<Intent> getCallback() {
         return callback;
+    }
+
+    String[] getPermissions() {
+        return permissions;
     }
 }

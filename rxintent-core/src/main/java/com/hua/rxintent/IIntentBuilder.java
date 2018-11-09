@@ -8,6 +8,6 @@ import android.content.Intent;
  * @version 2018/11/7 17:28
  */
 
-public interface IIntentBuilder {
-    Intent build(Context context);
+interface IIntentBuilder {
+
 }

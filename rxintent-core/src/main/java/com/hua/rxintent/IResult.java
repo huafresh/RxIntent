@@ -8,11 +8,6 @@ import android.support.annotation.Nullable;
  * @version 2018/11/7 16:21
  */
 
-public interface IResult {
-    /**
-     * 结果回调
-     *
-     * @param data 不为空表示正常
-     */
-    void onResult(@Nullable Intent data);
+public interface IResult<T> {
+    void onResult(T data);
 }

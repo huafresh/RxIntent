@@ -3,6 +3,7 @@ package com.hua.rxintent;
 import android.content.Intent;
 
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
@@ -11,33 +12,41 @@ import io.reactivex.functions.Function;
  * @version 2018/11/7 17:15
  */
 
-public class RxIntentObservable {
-
+public class RxIntentObservable<T> {
     private Observable<Intent> source;
-    private IInterceptor after;
     private Intent intent;
+    private IConverter<Intent, T> converter;
 
-    public RxIntentObservable(Observable<Intent> source) {
+    public RxIntentObservable(Observable<Intent> source, Intent intent) {
         this.source = source;
+        this.intent = intent;
     }
 
-    public RxIntentObservable before(IInterceptor before){
-        before.intercept(intent);
-        return this;
-    }
-    public RxIntentObservable after(IInterceptor after){
-        this.after = after;
+    public RxIntentObservable<T> beforeStart(IConverter<Intent, Intent> converter) {
+        this.intent = converter.convert(intent);
         return this;
     }
 
-    public Observable subscribe(Consumer<Intent> consumer){
-        source.map(new Function<Intent, Intent>() {
+    public Disposable onGetResult(final IResult<Intent> result) {
+        return source.subscribe(new Consumer<Intent>() {
             @Override
-            public Intent apply(Intent intent) throws Exception {
-                after.intercept(intent);
-                return intent;
+            public void accept(Intent intent) throws Exception {
+                result.onResult(intent);
             }
-        }).subscribe(consumer);
-        return source;
+        });
+    }
+
+     RxIntentObservable<T> setConverter(IConverter<Intent, T> converter) {
+        this.converter = converter;
+        return this;
+    }
+
+    public Disposable subscribe(final IResult<T> result) {
+        return source.subscribe(new Consumer<Intent>() {
+            @Override
+            public void accept(Intent intent) throws Exception {
+                result.onResult(converter.convert(intent));
+            }
+        });
     }
 }

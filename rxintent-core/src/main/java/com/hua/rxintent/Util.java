@@ -26,7 +26,38 @@ import static android.os.Environment.MEDIA_MOUNTED;
 @SuppressWarnings("ALL")
 class Util {
 
-     static Uri getUriFromFile(Context context, File file) {
+    static File createFile(Context context, String dirPath, String name) {
+        File dirFile = new File(dirPath);
+        if (!dirFile.exists()) {
+            if (!dirFile.mkdirs()) {
+                return null;
+            }
+        }
+        File file = new File(dirPath + File.separator + name);
+        if (!file.exists()) {
+            try {
+                if (!file.createNewFile()) {
+                    return null;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return file;
+    }
+
+    static String getCacheDirPath(Context context) {
+        String path;
+        if (Util.isExternalExist()) {
+            path = context.getExternalCacheDir().getAbsolutePath();
+        } else {
+            path = context.getCacheDir().getAbsolutePath();
+        }
+        return path;
+    }
+
+    static Uri getUriFromFile(Context context, File file) {
         ApplicationInfo info = context.getApplicationInfo();
         if (isN() &&
                 info.targetSdkVersion >= Build.VERSION_CODES.N) {
@@ -37,11 +68,14 @@ class Util {
         }
     }
 
-     static boolean isN() {
+    /**
+     * 是否是7.0
+     */
+    static boolean isN() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
     }
 
-     static boolean isExternalExist() {
+    static boolean isExternalExist() {
         return MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
