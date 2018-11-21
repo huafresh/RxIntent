@@ -14,37 +14,58 @@ import io.reactivex.functions.Consumer;
 public class RxIntentObservable<T> {
     private Observable<Intent> source;
     private Intent intent;
-    private IResultHandler<Intent, T> converter;
+    private IConverter<Intent, T> defaultConverter;
+    IResultCallback<T> callback;
 
-    public RxIntentObservable(Observable<Intent> source, Intent intent) {
+    RxIntentObservable(Observable<Intent> source, Intent intent) {
         this.source = source;
         this.intent = intent;
     }
 
-    public RxIntentObservable<T> beforeStart(IResultHandler<Intent, Intent> converter) {
-        this.intent = converter.handle(intent);
+    /**
+     * 拦截Intent请求
+     *
+     * @param converter 转换器
+     * @return this
+     */
+    public RxIntentObservable<T> beforeStart(IConverter<Intent, Intent> converter) {
+        this.intent = converter.convert(intent);
         return this;
     }
 
-    public Disposable onGetResult(final IResult<Intent> result) {
+    RxIntentObservable<T> setDefaultConverter(IConverter<Intent, T> converter) {
+        this.defaultConverter = converter;
+        return this;
+    }
+
+    /**
+     * {@link Observable#subscribe}的包装。
+     * 会触发真正启动intent，并且使用默认转换器转换结果。
+     *
+     * @param result 结果回调
+     * @return rx Disposable
+     */
+    public Disposable subscribe(final IResultCallback<T> result) {
         return source.subscribe(new Consumer<Intent>() {
             @Override
             public void accept(Intent intent) throws Exception {
-                result.onResult(intent);
+                result.onResult(defaultConverter.convert(intent));
             }
         });
     }
 
-     RxIntentObservable<T> setConverter(IResultHandler<Intent, T> converter) {
-        this.converter = converter;
-        return this;
-    }
-
-    public Disposable subscribe(final IResult<T> result) {
+    /**
+     * {@link Observable#subscribe}的包装。
+     * 会触发真正启动intent，不使用任何转换器，所以拿到的是原始返回的Intent。
+     *
+     * @param result 结果回调
+     * @return rx Disposable
+     */
+    public Disposable subscribeWithoutConvert(final IResultCallback<Intent> result) {
         return source.subscribe(new Consumer<Intent>() {
             @Override
             public void accept(Intent intent) throws Exception {
-                result.onResult(converter.handle(intent));
+                result.onResult(intent);
             }
         });
     }

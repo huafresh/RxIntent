@@ -1,0 +1,32 @@
+package com.hua.rxintent;
+
+import android.content.Intent;
+import android.support.annotation.Nullable;
+
+/**
+ * @author hua
+ * @version 2018/11/7 16:21
+ */
+
+public interface IResultCallback<T> {
+    /**
+     * 权限被拒绝
+     *
+     * @param permissions 被拒绝的权限
+     */
+    void onPermissionsDenied(String[] permissions);
+
+    /**
+     * 流程执行正常
+     *
+     * @param data 从目标页面返回的结果
+     */
+    void onResult(@Nullable T data);
+
+    /**
+     * 流程异常
+     *
+     * @param t 异常信息
+     */
+    void onError(Throwable t);
+}

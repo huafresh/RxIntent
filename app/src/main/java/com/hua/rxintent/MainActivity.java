@@ -1,6 +1,5 @@
 package com.hua.rxintent;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCamera(MainActivity.this)
-                        .subscribe(new IResult<String>() {
+                        .subscribe(new IResultCallback<String>() {
                             @Override
                             public void onResult(String data) {
                                 Log.e("@@@hua", "camera path = " + data);
@@ -43,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openAlbum(MainActivity.this)
-                        .subscribe(new IResult<String>() {
+                        .subscribe(new IResultCallback<String>() {
                             @Override
                             public void onResult(String data) {
                                 Log.e("@@@hua", "album path = " + data);
@@ -59,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCrop(MainActivity.this, path)
-                        .subscribe(new IResult<String>() {
+                        .subscribe(new IResultCallback<String>() {
                             @Override
                             public void onResult(String data) {
                                 Log.e("@@@hua", "crop path = " + data);

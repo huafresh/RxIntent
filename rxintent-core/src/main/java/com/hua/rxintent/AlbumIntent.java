@@ -34,11 +34,17 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
 
     @Override
     String[] needPermissions() {
-        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return new String[]{
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE};
+        } else {
+            return new String[0];
+        }
     }
 
     @Override
-    public String handle(Intent result) {
+    public String convert(Intent result) {
         if (context != null) {
             Uri uri = result.getData();
             return resolveUriReturnByAlbum(context, uri);

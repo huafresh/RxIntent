@@ -10,11 +10,12 @@ import android.content.Intent;
 class IntentRequest {
     private Intent intent;
     private String[] permissions;
-    private IResult<Intent> callback;
+    private IResultCallback<Intent> callback;
     int requestCode;
+    Object result;
 
     IntentRequest(Intent intent,
-                  IResult<Intent> callback,
+                  IResultCallback<Intent> callback,
                   String[] permissions) {
         this.intent = intent;
         this.callback = callback;
@@ -25,7 +26,7 @@ class IntentRequest {
         return intent;
     }
 
-    IResult<Intent> getCallback() {
+    IResultCallback<Intent> getCallback() {
         return callback;
     }
 

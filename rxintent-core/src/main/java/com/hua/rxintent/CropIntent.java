@@ -1,9 +1,11 @@
 package com.hua.rxintent;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
@@ -60,9 +62,20 @@ class CropIntent extends AbstractIntent<Intent, String> {
         return null;
     }
 
+    @Override
+    String[] needPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return new String[]{
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE};
+        } else {
+            return new String[0];
+        }
+    }
+
 
     @Override
-    public String handle(Intent result) {
+    public String convert(Intent result) {
         return result != null ? savePath : null;
     }
 }

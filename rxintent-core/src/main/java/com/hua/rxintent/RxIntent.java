@@ -29,22 +29,35 @@ public class RxIntent {
 
     @NonNull
     private static <T> RxIntentObservable<T> openInternal(final FragmentActivity activity,
-                                                          final AbstractIntent<Intent, T> abstractIntent) {
-        final Intent intent = abstractIntent.build(activity);
+                                                          final AbstractIntent<Intent, T> absIntent) {
+        final Intent intent = absIntent.build(activity);
+         RxIntentObservable<T> rxIntentObservable = null;
         Observable<Intent> source = Observable.create(new ObservableOnSubscribe<Intent>() {
             @Override
             public void subscribe(final ObservableEmitter<Intent> emitter) throws Exception {
-                IResult<Intent> result = new IResult<Intent>() {
+                IResultCallback<Intent> result = new IResultCallback<Intent>() {
                     @Override
                     public void onResult(Intent data) {
                         emitter.onNext(data);
                     }
+
+                    @Override
+                    public void onPermissionsDenied(String[] permissions) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+
+                    }
                 };
-                final IntentRequest request = new IntentRequest(intent, result, abstractIntent.needPermissions());
-                RxIntentFragment.openByFragment(activity, request);
+                final IntentRequest request = new IntentRequest(intent, result, absIntent.needPermissions());
+                RxIntentFragment.enqueueRequest(activity, request);
             }
         });
-        return new RxIntentObservable<T>(source, intent).setConverter(abstractIntent);
+        rxIntentObservable = new RxIntentObservable<T>(source, intent).setDefaultConverter(absIntent);
+
+        return rxIntentObservable;
     }
 
 }

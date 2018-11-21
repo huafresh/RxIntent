@@ -3,14 +3,20 @@ package com.hua.rxintent;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.support.annotation.NonNull;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -23,79 +29,57 @@ import io.reactivex.functions.Consumer;
  */
 @SuppressWarnings("ConstantConditions")
 public class RxIntentFragment extends Fragment {
+    private static final int WHAT_START_REQUEST_PERMISSIONS = 1;
+    private static final int WHAT_START_REQUEST_INTENT = 2;
     private static final String TAG_RX_INTENT_FRAGMENT = "tag_rx_intent_fragment";
-    private Activity activity;
-    private BlockingQueue<IntentRequest> requestQueue = new ArrayBlockingQueue<>(5);
-    private boolean running = false;
-    private int requestCode = 0x100;
-    private SendThread sendThread = new SendThread();
+    private static int sRequestCode = 0x100;
+    private List<IntentRequest> waitForResult = new ArrayList<>();
 
-    private class SendThread extends Thread {
-        private IntentRequest request;
-        private final Object mLock = new Object();
-
+    private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
-        public void run() {
-            if (running) {
-                try {
-                    this.request = null;
-                    IntentRequest request = requestQueue.take();
-                    request.requestCode = requestCode++;
-                    this.request = request;
-
-                    _wait();
-                    RxPermissions rxPermissions = new RxPermissions(RxIntentFragment.this);
-                    rxPermissions.request(request.getPermissions())
-                            .subscribe(new Consumer<Boolean>() {
-                                @Override
-                                public void accept(Boolean b) throws Exception {
-                                    _continue();
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            final IntentRequest request = (IntentRequest) msg.obj;
+            switch (msg.what) {
+                case WHAT_START_REQUEST_PERMISSIONS:
+                    final RxPermissions rp = new RxPermissions(RxIntentFragment.this);
+                    rp.request(request.getPermissions()).subscribe(new Consumer<Boolean>() {
+                        @Override
+                        public void accept(Boolean granted) throws Exception {
+                            if (granted) {
+                                handler.obtainMessage(WHAT_START_REQUEST_INTENT, request)
+                                        .sendToTarget();
+                            } else {
+                                List<String> denied = new ArrayList<>();
+                                for (String permission : request.getPermissions()) {
+                                    if (!rp.isGranted(permission)) {
+                                        denied.add(permission);
+                                    }
                                 }
-                            });
-
-                    _wait();
+                                request.getCallback().onPermissionsDenied(
+                                        denied.toArray(new String[denied.size()]));
+                            }
+                        }
+                    });
+                    break;
+                case WHAT_START_REQUEST_INTENT:
+                    request.requestCode = ++sRequestCode;
                     startActivityForResult(request.getIntent(), request.requestCode);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                    waitForResult.add(request);
+                    break;
+                default:
+                    break;
             }
         }
-
-        void _wait() throws InterruptedException {
-            synchronized (mLock) {
-                mLock.wait();
-            }
-        }
-
-        void _continue() {
-            synchronized (mLock) {
-                mLock.notifyAll();
-            }
-        }
-
-
-        IntentRequest getRequest() {
-            return request;
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        this.activity = (Activity) context;
-        sendThread = new SendThread();
-        sendThread.start();
-        running = true;
-    }
+    };
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        running = false;
-        sendThread.interrupt();
+        handler.removeCallbacksAndMessages(null);
     }
 
-    static void openByFragment(FragmentActivity activity, IntentRequest request) {
+    static void enqueueRequest(FragmentActivity activity, IntentRequest request) {
         FragmentManager manager = activity.getSupportFragmentManager();
         RxIntentFragment rxFragment = (RxIntentFragment) manager.findFragmentByTag(TAG_RX_INTENT_FRAGMENT);
         if (rxFragment == null) {
@@ -108,19 +92,26 @@ public class RxIntentFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        IntentRequest request = sendThread.getRequest();
-        if (request != null && request.requestCode == requestCode) {
-            if (resultCode == Activity.RESULT_OK) {
-                request.getCallback().onResult(data);
-            } else {
-                request.getCallback().onResult(null);
+        IntentRequest request = findRequestByRequestCode(requestCode);
+        if (request != null) {
+            request.getCallback().onResult(data);
+        }
+    }
+
+    private IntentRequest findRequestByRequestCode(int requestCode) {
+        Iterator<IntentRequest> iterator = waitForResult.iterator();
+        while (iterator.hasNext()) {
+            IntentRequest request = iterator.next();
+            if (request.requestCode == requestCode) {
+                iterator.remove();
+                return request;
             }
         }
-        sendThread._continue();
+        return null;
     }
 
     void sendIntentRequest(IntentRequest request) {
-        requestQueue.add(request);
+        handler.obtainMessage(WHAT_START_REQUEST_PERMISSIONS, request);
     }
 
 }
