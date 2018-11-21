@@ -1,13 +1,17 @@
 package com.hua.rxintent;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     private String path;
@@ -26,9 +30,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCamera(MainActivity.this)
-                        .subscribe(new IResultCallback<String>() {
+                        .subscribe(new SimpleResultCallback<String>() {
                             @Override
-                            public void onResult(String data) {
+                            public void onResult(@Nullable String data) {
                                 Log.e("@@@hua", "camera path = " + data);
                                 Bitmap bitmap = BitmapFactory.decodeFile(data);
                                 imageView.setImageBitmap(bitmap);
@@ -42,9 +46,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openAlbum(MainActivity.this)
-                        .subscribe(new IResultCallback<String>() {
+                        .subscribe(new SimpleResultCallback<String>() {
                             @Override
-                            public void onResult(String data) {
+                            public void onResult(@Nullable String data) {
                                 Log.e("@@@hua", "album path = " + data);
                                 Bitmap bitmap = BitmapFactory.decodeFile(data);
                                 path = data;
@@ -58,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCrop(MainActivity.this, path)
-                        .subscribe(new IResultCallback<String>() {
+                        .subscribe(new SimpleResultCallback<String>() {
                             @Override
-                            public void onResult(String data) {
+                            public void onResult(@Nullable String data) {
                                 Log.e("@@@hua", "crop path = " + data);
                                 Bitmap bitmap = BitmapFactory.decodeFile(data);
                                 imageView.setImageBitmap(bitmap);

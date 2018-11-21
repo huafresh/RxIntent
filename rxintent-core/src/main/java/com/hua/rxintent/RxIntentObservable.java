@@ -1,8 +1,12 @@
 package com.hua.rxintent;
 
+import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
@@ -11,15 +15,19 @@ import io.reactivex.functions.Consumer;
  * @version 2018/11/7 17:15
  */
 
-public class RxIntentObservable<T> {
-    private Observable<Intent> source;
+public class RxIntentObservable<T> extends Observable<Intent> implements IResultCallback<Intent> {
     private Intent intent;
     private IConverter<Intent, T> defaultConverter;
-    IResultCallback<T> callback;
+    private AbstractIntent<Intent, T> absIntent;
+    private FragmentActivity activity;
+    private Observer<? super Intent> observer;
 
-    RxIntentObservable(Observable<Intent> source, Intent intent) {
-        this.source = source;
-        this.intent = intent;
+
+    RxIntentObservable(FragmentActivity activity,
+                       AbstractIntent<Intent, T> absIntent) {
+        this.activity = activity;
+        this.absIntent = absIntent;
+        this.intent = absIntent.build(activity);
     }
 
     /**
@@ -40,33 +48,59 @@ public class RxIntentObservable<T> {
 
     /**
      * {@link Observable#subscribe}的包装。
-     * 会触发真正启动intent，并且使用默认转换器转换结果。
+     * 使用此方法会使用默认的转换器转换结果。
      *
-     * @param result 结果回调
-     * @return rx Disposable
+     * @param callback 结果回调
      */
-    public Disposable subscribe(final IResultCallback<T> result) {
-        return source.subscribe(new Consumer<Intent>() {
+    public void subscribe(final IResultCallback<T> callback) {
+        subscribe(new RxIntentObserver<Intent>() {
             @Override
-            public void accept(Intent intent) throws Exception {
-                result.onResult(defaultConverter.convert(intent));
+            public void onPermissionsDenied(String[] permissions) {
+                callback.onPermissionsDenied(permissions);
+            }
+
+            @Override
+            public void onResult(@Nullable Intent data) {
+                callback.onResult(defaultConverter.convert(data));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                callback.onError(t);
             }
         });
     }
 
-    /**
-     * {@link Observable#subscribe}的包装。
-     * 会触发真正启动intent，不使用任何转换器，所以拿到的是原始返回的Intent。
-     *
-     * @param result 结果回调
-     * @return rx Disposable
-     */
-    public Disposable subscribeWithoutConvert(final IResultCallback<Intent> result) {
-        return source.subscribe(new Consumer<Intent>() {
-            @Override
-            public void accept(Intent intent) throws Exception {
-                result.onResult(intent);
-            }
-        });
+    @Override
+    protected void subscribeActual(Observer<? super Intent> observer) {
+        this.observer = observer;
+        final IntentRequest request = new IntentRequest(intent,
+                absIntent.needPermissions(), this);
+        RxIntentFragment.enqueueRequest(activity, request);
     }
+
+    @Override
+    public void onPermissionsDenied(String[] permissions) {
+        if (observer instanceof IResultCallback) {
+            ((IResultCallback) observer).onPermissionsDenied(permissions);
+        } else {
+            Util.e("start intent failed. permission denied");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void onResult(@Nullable Intent data) {
+        if (observer instanceof IResultCallback) {
+            ((IResultCallback) observer).onResult(data);
+        } else {
+            observer.onNext(data);
+        }
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        observer.onError(t);
+    }
+
 }

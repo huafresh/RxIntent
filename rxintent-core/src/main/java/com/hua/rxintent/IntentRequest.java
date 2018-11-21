@@ -15,8 +15,9 @@ class IntentRequest {
     Object result;
 
     IntentRequest(Intent intent,
-                  IResultCallback<Intent> callback,
-                  String[] permissions) {
+                  String[] permissions,
+                  IResultCallback<Intent> callback) {
+
         this.intent = intent;
         this.callback = callback;
         this.permissions = permissions;

@@ -2,6 +2,9 @@ package com.hua.rxintent;
 
 import android.support.annotation.Nullable;
 
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+
 /**
  * @author hua
  * @version V1.0

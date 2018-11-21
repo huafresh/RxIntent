@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -25,6 +26,8 @@ import static android.os.Environment.MEDIA_MOUNTED;
  */
 @SuppressWarnings("ALL")
 class Util {
+
+    static boolean debugEnable = false;
 
     static File createFile(Context context, String dirPath, String name) {
         File dirFile = new File(dirPath);
@@ -79,4 +82,15 @@ class Util {
         return MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
+    static void d(String msg) {
+        if (debugEnable) {
+            Log.d("@@@RxIntent", msg);
+        }
+    }
+
+    static void e(String msg) {
+        if (debugEnable) {
+            Log.e("@@@RxIntent", msg);
+        }
+    }
 }

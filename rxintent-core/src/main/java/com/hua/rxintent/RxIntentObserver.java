@@ -1,28 +1,26 @@
 package com.hua.rxintent;
 
-import io.reactivex.Observable;
+import android.content.Intent;
+import android.support.annotation.Nullable;
+
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
 /**
  * @author hua
  * @version V1.0
- * @date 2018/11/21 10:37
+ * @date 2018/11/21 14:53
  */
 
-public class RxIntentObserver implements Observer, IResultCallback {
+abstract class RxIntentObserver<T> implements Observer<T>, IResultCallback<T> {
+
     @Override
     public void onSubscribe(Disposable d) {
 
     }
 
     @Override
-    public void onNext(Object o) {
-
-    }
-
-    @Override
-    public void onError(Throwable e) {
+    public void onNext(T intent) {
 
     }
 
