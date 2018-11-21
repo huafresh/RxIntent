@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCamera(MainActivity.this)
-                        .subscribe(new SimpleResultCallback<String>() {
+                        .subscribe2(new SimpleResultCallback<String>() {
                             @Override
                             public void onResult(@Nullable String data) {
                                 Log.e("@@@hua", "camera path = " + data);
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openAlbum(MainActivity.this)
-                        .subscribe(new SimpleResultCallback<String>() {
+                        .subscribe2(new SimpleResultCallback<String>() {
                             @Override
                             public void onResult(@Nullable String data) {
                                 Log.e("@@@hua", "album path = " + data);
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCrop(MainActivity.this, path)
-                        .subscribe(new SimpleResultCallback<String>() {
+                        .subscribe2(new SimpleResultCallback<String>() {
                             @Override
                             public void onResult(@Nullable String data) {
                                 Log.e("@@@hua", "crop path = " + data);
@@ -70,6 +70,34 @@ public class MainActivity extends AppCompatActivity {
                                 imageView.setImageBitmap(bitmap);
                             }
                         });
+            }
+        });
+
+        findViewById(R.id.btn_camera_crop) .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        RxIntent.openCameraAndCrop(MainActivity.this).subscribe2(new SimpleResultCallback<String>() {
+                            @Override
+                            public void onResult(@Nullable String data) {
+                                Log.e("@@@hua", "crop path = " + data);
+                                Bitmap bitmap = BitmapFactory.decodeFile(data);
+                                imageView.setImageBitmap(bitmap);
+                            }
+                        });
+                    }
+                });
+
+        findViewById(R.id.btn_album_crop) .setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RxIntent.openAlbumAndCrop(MainActivity.this).subscribe2(new SimpleResultCallback<String>() {
+                    @Override
+                    public void onResult(@Nullable String data) {
+                        Log.e("@@@hua", "crop path = " + data);
+                        Bitmap bitmap = BitmapFactory.decodeFile(data);
+                        imageView.setImageBitmap(bitmap);
+                    }
+                });
             }
         });
 

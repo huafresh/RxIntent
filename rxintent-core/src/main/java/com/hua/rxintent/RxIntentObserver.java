@@ -12,7 +12,7 @@ import io.reactivex.disposables.Disposable;
  * @date 2018/11/21 14:53
  */
 
-abstract class RxIntentObserver<T> implements Observer<T>, IResultCallback<T> {
+abstract class RxIntentObserver<T> implements Observer<Intent>, IResultCallback<T> {
 
     @Override
     public void onSubscribe(Disposable d) {
@@ -20,7 +20,7 @@ abstract class RxIntentObserver<T> implements Observer<T>, IResultCallback<T> {
     }
 
     @Override
-    public void onNext(T intent) {
+    public void onNext(Intent intent) {
 
     }
 

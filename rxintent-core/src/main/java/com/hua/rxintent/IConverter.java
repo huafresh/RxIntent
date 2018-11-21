@@ -11,5 +11,5 @@ public interface IConverter<R, T> {
     /**
      * 对象R转T
      */
-    T convert(R result);
+    T convert(R intent);
 }

@@ -17,7 +17,7 @@ public interface IResultCallback<T> {
     void onPermissionsDenied(String[] permissions);
 
     /**
-     * 流程执行正常
+     * 流程正常，并且resultCode = Activity.RESULT_OK
      *
      * @param data 从目标页面返回的结果
      */

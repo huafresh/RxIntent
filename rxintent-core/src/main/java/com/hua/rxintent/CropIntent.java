@@ -75,7 +75,7 @@ class CropIntent extends AbstractIntent<Intent, String> {
 
 
     @Override
-    public String convert(Intent result) {
-        return result != null ? savePath : null;
+    public String convert(Intent intent) {
+        return intent != null ? savePath : null;
     }
 }

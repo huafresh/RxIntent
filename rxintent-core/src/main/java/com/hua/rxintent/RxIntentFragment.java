@@ -94,7 +94,13 @@ public class RxIntentFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         IntentRequest request = findRequestByRequestCode(requestCode);
         if (request != null) {
-            request.getCallback().onResult(data);
+            if (resultCode == Activity.RESULT_OK) {
+                request.getCallback().onResult(data);
+            } else if(resultCode == Activity.RESULT_CANCELED){
+                request.getCallback().onError(new Throwable("操作取消"));
+            } else {
+                request.getCallback().onError(new Throwable("未知错误"));
+            }
         }
     }
 
@@ -111,7 +117,7 @@ public class RxIntentFragment extends Fragment {
     }
 
     void sendIntentRequest(IntentRequest request) {
-        handler.obtainMessage(WHAT_START_REQUEST_PERMISSIONS, request);
+        handler.obtainMessage(WHAT_START_REQUEST_PERMISSIONS, request).sendToTarget();
     }
 
 }
