@@ -101,5 +101,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        RxIntent.openCamera(this)
+                .subscribe2(new SimpleResultCallback<String>() {
+                    @Override
+                    public void onResult(@Nullable String path) {
+                        //拿到的path就是图片存储的全路径
+                    }
+                });
+
+        RxIntent.openCamera(this)
+                .beforeStart(new IConverter<Intent, Intent>() {
+                    @Override
+                    public Intent convert(Intent intent) {
+                        //do your convert
+                        return null;
+                    }
+                })
+                .subscribe(new Consumer<Intent>() {
+                    @Override
+                    public void accept(Intent intent) throws Exception {
+
+                    }
+                });
+
+        RxIntent.openCamera(this)
+                .subscribe(new Consumer<Intent>() {
+                    @Override
+                    public void accept(Intent intent) throws Exception {
+
+                    }
+                });
+
+
     }
 }
