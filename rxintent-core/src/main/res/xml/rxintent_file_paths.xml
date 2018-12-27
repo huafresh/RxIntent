@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-cache-path
-        name="rxintent"
-        path="." />
+        name="rxintent-external"
+        path="/" />
     <cache-path
         name="rxintent"
-        path="."/>
+        path="/"/>
 </paths>
