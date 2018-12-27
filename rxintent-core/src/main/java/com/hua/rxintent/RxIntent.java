@@ -1,6 +1,7 @@
 package com.hua.rxintent;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -28,6 +29,10 @@ public class RxIntent {
 
     public static RxIntentObservable<String> openCrop(final FragmentActivity activity, String filePath) {
         return openInternal(activity, new CropIntent(filePath));
+    }
+
+    public static RxIntentObservable<String> openCrop(final FragmentActivity activity, Uri uri) {
+        return openInternal(activity, new CropIntent(uri));
     }
 
     public static RxIntentObservable<String> openCameraAndCrop(final FragmentActivity activity) {

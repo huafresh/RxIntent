@@ -29,7 +29,7 @@ class Util {
 
     static boolean debugEnable = false;
 
-    static File createFile(Context context, String dirPath, String name) {
+    static File createFileIfNeed(Context context, String dirPath, String name) {
         File dirFile = new File(dirPath);
         if (!dirFile.exists()) {
             if (!dirFile.mkdirs()) {
@@ -60,10 +60,9 @@ class Util {
         return path;
     }
 
-    static Uri getUriFromFile(Context context, File file) {
+    static Uri getCompatUriFromFile(Context context, File file) {
         ApplicationInfo info = context.getApplicationInfo();
-        if (isN() &&
-                info.targetSdkVersion >= Build.VERSION_CODES.N) {
+        if (isN() && isTargetN(context)) {
             return FileProvider.getUriForFile(context,
                     info.packageName + ".rxintent.fileprovider", file);
         } else {
@@ -76,6 +75,11 @@ class Util {
      */
     static boolean isN() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+    }
+
+    static boolean isTargetN(Context context){
+        ApplicationInfo info = context.getApplicationInfo();
+        return info.targetSdkVersion >= Build.VERSION_CODES.N;
     }
 
     static boolean isExternalExist() {

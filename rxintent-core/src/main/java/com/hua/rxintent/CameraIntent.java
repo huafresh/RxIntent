@@ -24,11 +24,11 @@ class CameraIntent extends AbstractIntent<Intent, String> {
     @Override
     public Intent build(Context context) {
         String dirPath = Util.getCacheDirPath(context);
-        File saveFile = Util.createFile(context, dirPath, TEMP_FILE_NAME);
+        File saveFile = Util.createFileIfNeed(context, dirPath, TEMP_FILE_NAME);
         if (saveFile != null) {
             savePath = saveFile.getAbsolutePath();
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, Util.getUriFromFile(context, saveFile));
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Util.getCompatUriFromFile(context, saveFile));
             if (Util.isN()) {
                 intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
