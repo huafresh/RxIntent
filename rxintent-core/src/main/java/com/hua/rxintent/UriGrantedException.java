@@ -10,4 +10,8 @@ public class UriGrantedException extends IllegalArgumentException {
     public UriGrantedException(String message) {
         super(message);
     }
+
+    public UriGrantedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -59,7 +59,7 @@ class CropIntent extends AbstractIntent<Intent, String> {
                 try {
                     orgUri = Util.getCompatUriFromFile(context, new File(originPath));
                 } catch (Exception e) {
-                    throw new UriGrantedException(String.format(FORMAT_MSG, originPath));
+                    throw new UriGrantedException(String.format(FORMAT_MSG, originPath), e);
                 }
             }
             checkUri(context, orgUri);
@@ -73,8 +73,7 @@ class CropIntent extends AbstractIntent<Intent, String> {
             intent.putExtra("outputX", DEFAULT_WIDTH);
             intent.putExtra("outputY", DEFAULT_HEIGHT);
             intent.putExtra("scale", true);
-            Uri outputUri = Util.getCompatUriFromFile(context, saveFile);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputUri);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(saveFile));
             if (Util.isN()) {
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

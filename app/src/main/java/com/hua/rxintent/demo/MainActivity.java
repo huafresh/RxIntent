@@ -49,16 +49,16 @@ public class MainActivity extends AppCompatActivity {
         album.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RxIntent.openAlbum(MainActivity.this)
-                        .subscribe2(new SimpleResultCallback<String>() {
-                            @Override
-                            public void onResult(@Nullable String data) {
-                                Log.e("@@@hua", "album path = " + data);
-                                Bitmap bitmap = BitmapFactory.decodeFile(data);
-                                path = data;
-                                imageView.setImageBitmap(bitmap);
-                            }
-                        });
+//                RxIntent.openAlbum(MainActivity.this)
+//                        .subscribe2(new SimpleResultCallback<String>() {
+//                            @Override
+//                            public void onResult(@Nullable String data) {
+//                                Log.e("@@@hua", "album path = " + data);
+//                                Bitmap bitmap = BitmapFactory.decodeFile(data);
+//                                path = data;
+//                                imageView.setImageBitmap(bitmap);
+//                            }
+//                        });
             }
         });
 

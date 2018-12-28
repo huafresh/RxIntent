@@ -45,11 +45,7 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
 
     @Override
     public String convert(Intent intent) {
-        if (context != null) {
-            Uri uri = intent.getData();
-            return resolveUriReturnByAlbum(context, uri);
-        }
-        return null;
+        return resolveUriReturnByAlbum(context, intent.getData());
     }
 
     /**
@@ -62,7 +58,7 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
      * @param uri     相册的Uri
      * @return 解析uri后得到的图片的绝对路径
      */
-    private String resolveUriReturnByAlbum(final Context context, final Uri uri) {
+    private static String resolveUriReturnByAlbum(final Context context, final Uri uri) {
         // DocumentProvider
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
                 DocumentsContract.isDocumentUri(context, uri)) {
@@ -143,7 +139,7 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
-    private String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
+    private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
 
         Cursor cursor = null;
         final String column = "_data";
@@ -167,7 +163,7 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is ExternalStorageProvider.
      */
-    private boolean isExternalStorageDocument(Uri uri) {
+    private static boolean isExternalStorageDocument(Uri uri) {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
@@ -175,7 +171,7 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is DownloadsProvider.
      */
-    private boolean isDownloadsDocument(Uri uri) {
+    private static boolean isDownloadsDocument(Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
 
@@ -183,7 +179,7 @@ class AlbumIntent extends AbstractIntent<Intent, String> {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is MediaProvider.
      */
-    private boolean isMediaDocument(Uri uri) {
+    private static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
