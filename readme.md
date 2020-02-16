@@ -14,38 +14,47 @@ readme
 首先是最简单的使用（这里是打开系统相机）
 
 ```
-RxIntent.openCamera(this)
-            .subscribe2(new SimpleResultCallback<String>() {
-                @Override
-                public void onResult(@Nullable String path) {
-                    //拿到的path就是图片存储的全路径
-                }
-            });
+RxIntent.openCamera(MainActivity.this)
+        .subscribe(new Consumer<String>() {
+            @Override
+            public void accept(String data) throws Exception {
+                Log.e("@@@hua", "camera path = " + data);
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+    
+            }
+        });
 ```
-如果项目里图片选择是自定义实现的，可以添加一个Intent转换器转换一下Intent即可。
+如果启动系统应用的Intent参数希望修改，可调用beforeStart方法修改；
+如果希望拿到系统应用返回的原始data，调用asIntent即可，示例如下：
 
 
 ```
-RxIntent.openCamera(this)
-            .beforeStart(new IConverter<Intent, Intent>() {
-                @Override
-                public Intent convert(Intent intent) {
-                    //do your convert
-                    return null;
-                }
-            })
-            .subscribe(new Consumer<Intent>() {
-                @Override
-                public void accept(Intent intent) throws Exception {
-
-                }
-            });
+RxIntent.openCamera(MainActivity.this)
+        .beforeStart(new IConverter<Intent, Intent>() {
+            @Override
+            public Intent convert(Intent intent) {
+                // 修改intent
+                return intent;
+            }
+        })
+        .asIntent()
+        .subscribe(new Consumer<Intent>() {
+            @Override
+            public void accept(Intent intent) throws Exception {
+                // 操作原始intent
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+                
+            }
+        });
 ```
-
-注意此时就不能使用subscribe2方法了，要使用subscribe，因为此时返回的结果Intent框架并不能解析。
-subscribe方法回调的Intent是没有经过任何处理的。
+如果系统时某些权限没申请到，则会抛出RxIntentPermissionException异常，在onError中处理即可。
 
 # 三、后记
-还有其他回调，比如权限被拒绝、出现异常等，就不贴代码了。  
 目前RxIntent暂时只支持相机、相册、裁剪等系统应用的启动，未来还会逐步添加其他系统应用的支持。
 

@@ -67,7 +67,7 @@ public class RxIntentObservable<T> extends Observable<T> implements Disposable {
      * @return this
      */
     public RxIntentObservable beforeStart(IConverter<Intent, Intent> converter) {
-        this.intent = converter.convert(intent);
+        intent = converter.convert(intent);
         return this;
     }
 

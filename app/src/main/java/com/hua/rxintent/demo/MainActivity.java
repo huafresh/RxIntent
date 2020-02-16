@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.hua.rxintent.IConverter;
 import com.hua.rxintent.RxIntent;
 
 import io.reactivex.functions.Consumer;
@@ -40,9 +41,6 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void accept(String data) throws Exception {
                                 Log.e("@@@hua", "camera path = " + data);
-                                Bitmap bitmap = BitmapFactory.decodeFile(data);
-                                imageView.setImageBitmap(bitmap);
-                                path = data;
                             }
                         }, new Consumer<Throwable>() {
                             @Override
@@ -57,16 +55,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCamera(MainActivity.this)
+                        .beforeStart(new IConverter<Intent, Intent>() {
+                            @Override
+                            public Intent convert(Intent intent) {
+                                // 修改intent
+                                return intent;
+                            }
+                        })
                         .asIntent()
                         .subscribe(new Consumer<Intent>() {
                             @Override
                             public void accept(Intent intent) throws Exception {
-                                Log.e("@@@hua", "album origin intent = " + intent);
+                                // 操作原始intent
                             }
                         }, new Consumer<Throwable>() {
                             @Override
                             public void accept(Throwable throwable) throws Exception {
-                                Log.e("@@@hua", "album failed. = " + throwable.toString());
+
                             }
                         });
             }
