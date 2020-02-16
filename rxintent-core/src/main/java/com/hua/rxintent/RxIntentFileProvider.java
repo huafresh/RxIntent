@@ -1,6 +1,6 @@
 package com.hua.rxintent;
 
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 
 /**
  * 兼容7.0

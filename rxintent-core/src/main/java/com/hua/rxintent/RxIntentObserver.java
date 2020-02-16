@@ -1,7 +1,6 @@
 package com.hua.rxintent;
 
 import android.content.Intent;
-import android.support.annotation.Nullable;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;

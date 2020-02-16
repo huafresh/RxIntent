@@ -1,12 +1,11 @@
 package com.hua.rxintent;
 
 import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.functions.Function;
 
 /**
  * @author hua
