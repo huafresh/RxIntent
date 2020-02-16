@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
  * @version 2018/11/7 16:21
  */
 
-public interface IResultCallback<T> {
+interface IResultCallback<T> {
     /**
      * 权限被拒绝
      *

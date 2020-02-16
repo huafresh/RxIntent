@@ -1,9 +1,13 @@
 package com.hua.rxintent.demo;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,8 +15,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.hua.rxintent.RxIntent;
-import com.hua.rxintent.SimpleResultCallback;
 
+import io.reactivex.functions.Consumer;
+
+@SuppressLint("CheckResult")
 public class MainActivity extends AppCompatActivity {
     private String path;
 
@@ -30,13 +36,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 RxIntent.openCamera(MainActivity.this)
-                        .subscribe2(new SimpleResultCallback<String>() {
+                        .subscribe(new Consumer<String>() {
                             @Override
-                            public void onResult(@Nullable String data) {
+                            public void accept(String data) throws Exception {
                                 Log.e("@@@hua", "camera path = " + data);
                                 Bitmap bitmap = BitmapFactory.decodeFile(data);
                                 imageView.setImageBitmap(bitmap);
                                 path = data;
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+
                             }
                         });
             }
@@ -45,95 +56,47 @@ public class MainActivity extends AppCompatActivity {
         album.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                RxIntent.openAlbum(MainActivity.this)
-//                        .subscribe2(new SimpleResultCallback<String>() {
-//                            @Override
-//                            public void onResult(@Nullable String data) {
-//                                Log.e("@@@hua", "album path = " + data);
-//                                Bitmap bitmap = BitmapFactory.decodeFile(data);
-//                                path = data;
-//                                imageView.setImageBitmap(bitmap);
-//                            }
-//                        });
+                RxIntent.openCamera(MainActivity.this)
+                        .asIntent()
+                        .subscribe(new Consumer<Intent>() {
+                            @Override
+                            public void accept(Intent intent) throws Exception {
+                                Log.e("@@@hua", "album origin intent = " + intent);
+                            }
+                        }, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.e("@@@hua", "album failed. = " + throwable.toString());
+                            }
+                        });
             }
         });
 
         crop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RxIntent.openCrop(MainActivity.this, path)
-                        .subscribe2(new SimpleResultCallback<String>() {
-                            @Override
-                            public void onResult(@Nullable String data) {
-                                Log.e("@@@hua", "crop path = " + data);
-                                Bitmap bitmap = BitmapFactory.decodeFile(data);
-                                imageView.setImageBitmap(bitmap);
-                            }
-                        });
+
             }
         });
 
-        findViewById(R.id.btn_camera_crop) .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        RxIntent.openCameraAndCrop(MainActivity.this).subscribe2(new SimpleResultCallback<String>() {
-                            @Override
-                            public void onResult(@Nullable String data) {
-                                Log.e("@@@hua", "crop path = " + data);
-                                Bitmap bitmap = BitmapFactory.decodeFile(data);
-                                imageView.setImageBitmap(bitmap);
-                            }
-                        });
-                    }
-                });
-
-        findViewById(R.id.btn_album_crop) .setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_camera_crop).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RxIntent.openAlbumAndCrop(MainActivity.this).subscribe2(new SimpleResultCallback<String>() {
-                    @Override
-                    public void onResult(@Nullable String data) {
-                        Log.e("@@@hua", "crop path = " + data);
-                        Bitmap bitmap = BitmapFactory.decodeFile(data);
-                        imageView.setImageBitmap(bitmap);
-                    }
-                });
-
-
+                RxIntent.openCameraAndCrop(MainActivity.this)
+                        .subscribe(new Consumer<String>() {
+                            @Override
+                            public void accept(String s) throws Exception {
+                                Log.e("@@@hua", "camera and crop, path = " + s);
+                            }
+                        });
             }
         });
 
-//        RxIntent.openCamera(this)
-//                .subscribe2(new SimpleResultCallback<String>() {
-//                    @Override
-//                    public void onResult(@Nullable String path) {
-//                        //拿到的path就是图片存储的全路径
-//                    }
-//                });
-//
-//        RxIntent.openCamera(this)
-//                .beforeStart(new IConverter<Intent, Intent>() {
-//                    @Override
-//                    public Intent convert(Intent intent) {
-//                        //do your convert
-//                        return null;
-//                    }
-//                })
-//                .subscribe(new Consumer<Intent>() {
-//                    @Override
-//                    public void accept(Intent intent) throws Exception {
-//
-//                    }
-//                });
-//
-//        RxIntent.openCamera(this)
-//                .subscribe(new Consumer<Intent>() {
-//                    @Override
-//                    public void accept(Intent intent) throws Exception {
-//
-//                    }
-//                });
+        findViewById(R.id.btn_album_crop).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-
+            }
+        });
     }
 }

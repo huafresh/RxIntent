@@ -1,9 +1,12 @@
 package com.hua.rxintent;
 
-import android.content.Intent;
 import androidx.annotation.Nullable;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.internal.disposables.DisposableHelper;
 
 /**
  * 仅仅用于使flatMap方法返回RxIntentObservable
@@ -26,65 +29,87 @@ class FlatMapObservable<T, U> extends RxIntentObservable<U> {
     }
 
     @Override
-    protected void subscribeActual(Observer<? super Intent> observer) {
-        source.subscribe2(new MergeObserver<>(observer, converter));
+    protected void subscribeActual(Observer<? super U> observer) {
+        source.subscribe(new MergeObserver<>(observer, converter));
     }
 
-    static final class MergeObserver<T, U> implements IResultCallback<T> {
+    static final class MergeObserver<T, U> implements Disposable, Observer<T> {
         private final IConverter<T, RxIntentObservable<U>> converter;
-        private Observer actual;
+        private Observer<? super U> actual;
+        private boolean cancelled = false;
+        private Disposable s;
 
-        private MergeObserver(Observer actual,
+        private MergeObserver(Observer<? super U> actual,
                               IConverter<T, RxIntentObservable<U>> converter) {
             this.actual = actual;
             this.converter = converter;
         }
 
         @Override
-        public void onPermissionsDenied(String[] permissions) {
-            if (actual instanceof IResultCallback) {
-                ((IResultCallback) actual).onPermissionsDenied(permissions);
+        public void onSubscribe(Disposable d) {
+            if (DisposableHelper.validate(s, d)) {
+                s = d;
+                actual.onSubscribe(this);
             }
         }
 
         @Override
-        public void onResult(@Nullable T data) {
-            converter.convert(data).subscribe2(new InnerObserver<U>(actual));
+        public void onNext(T t) {
+            RxIntentObservable<U> p = null;
+            try {
+                p = converter.convert(t);
+            } catch (Exception e) {
+                s.dispose();
+                onError(e);
+            }
+            if (p != null) {
+                p.subscribe(new Observer<U>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(U u) {
+                        actual.onNext(u);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        actual.onError(e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        actual.onComplete();
+                    }
+                });
+            } else {
+                onError(new NullPointerException("The mapper returned a null ObservableSource"));
+            }
+
         }
 
         @Override
         public void onError(Throwable e) {
             actual.onError(e);
         }
-    }
 
-    static final class InnerObserver<U> implements IResultCallback<U> {
-        private Observer parent;
-
-        InnerObserver(Observer parent) {
-            this.parent = parent;
+        @Override
+        public void onComplete() {
         }
 
         @Override
-        public void onPermissionsDenied(String[] permissions) {
-            if (parent instanceof IResultCallback) {
-                ((IResultCallback) parent).onPermissionsDenied(permissions);
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void onResult(@Nullable U data) {
-            if (parent instanceof IResultCallback) {
-                ((IResultCallback) parent).onResult(data);
-            } else {
-                parent.onNext(data);
+        public void dispose() {
+            if (!cancelled) {
+                cancelled = true;
+                s.dispose();
             }
         }
 
         @Override
-        public void onError(Throwable t) {
-            parent.onError(t);
+        public boolean isDisposed() {
+            return cancelled;
         }
     }
 }

@@ -1,26 +1,56 @@
 package com.hua.rxintent;
 
 import android.content.Intent;
+import android.text.TextUtils;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 
 /**
  * @author hua
  * @version 2018/11/7 17:15
  */
 
-public class RxIntentObservable<T> extends Observable<Intent> implements IResultCallback<Intent> {
+public class RxIntentObservable<T> extends Observable<T> implements Disposable {
     private Intent intent;
     private IConverter<Intent, T> defaultConverter;
     private AbstractIntent<Intent, T> absIntent;
     private FragmentActivity activity;
-    private Observer observer;
+    private Observer<? super T> observer;
+    private Intent data;
+    private boolean cancelled = false;
+    private IResultCallback<Intent> resultCallback = new IResultCallback<Intent>() {
+        @Override
+        public void onPermissionsDenied(String[] permissions) {
+            if (!cancelled) {
+                observer.onError(new RxIntentPermissionException("某些权限被拒绝", permissions));
+            }
+        }
+
+        @Override
+        public void onResult(@Nullable Intent data) {
+            if (!cancelled) {
+                RxIntentObservable.this.data = data;
+                observer.onNext(defaultConverter.convert(data));
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if (!cancelled) {
+                observer.onError(t);
+            }
+        }
+    };
 
     RxIntentObservable() {
-
     }
 
     RxIntentObservable(FragmentActivity activity,
@@ -31,80 +61,55 @@ public class RxIntentObservable<T> extends Observable<Intent> implements IResult
     }
 
     /**
-     * 拦截Intent请求
+     * 可以通过这个方法自定义打开系统应用的参数。
      *
      * @param converter 转换器
      * @return this
      */
-    public RxIntentObservable<T> beforeStart(IConverter<Intent, Intent> converter) {
+    public RxIntentObservable beforeStart(IConverter<Intent, Intent> converter) {
         this.intent = converter.convert(intent);
         return this;
     }
 
-    RxIntentObservable<T> setDefaultConverter(IConverter<Intent, T> converter) {
-        this.defaultConverter = converter;
-        return this;
-    }
-
     /**
-     * {@link Observable#subscribe}。
-     * 使用此方法会使用默认的转换器转换结果。
-     *
-     * @param callback 结果回调
+     * 转成系统应用返回的原始Intent
      */
-    public void subscribe2(final IResultCallback<T> callback) {
-        subscribe(new RxIntentObserver<T>() {
+    public Observable<Intent> asIntent() {
+        return flatMap(new Function<T, Observable<Intent>>() {
             @Override
-            public void onPermissionsDenied(String[] permissions) {
-                callback.onPermissionsDenied(permissions);
-            }
-
-            @Override
-            public void onResult(@Nullable T data) {
-                callback.onResult(data);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                callback.onError(t);
+            public Observable<Intent> apply(T path) throws Exception {
+                return Observable.just(data);
             }
         });
     }
 
+    RxIntentObservable setDefaultConverter(IConverter<Intent, T> converter) {
+        this.defaultConverter = converter;
+        return this;
+    }
+
     @Override
-    protected void subscribeActual(Observer<? super Intent> observer) {
+    protected void subscribeActual(Observer<? super T> observer) {
         this.observer = observer;
+        observer.onSubscribe(this);
         final IntentRequest request = new IntentRequest(intent,
-                absIntent.needPermissions(), this);
+                absIntent.needPermissions(), resultCallback);
         RxIntentFragment.enqueueRequest(activity, request);
     }
 
-    @Override
-    public void onPermissionsDenied(String[] permissions) {
-        if (observer instanceof IResultCallback) {
-            ((IResultCallback) observer).onPermissionsDenied(permissions);
-        } else {
-            Util.e("start intent failed. permission denied");
-        }
+    <U> RxIntentObservable flatMap2(final IConverter<T, RxIntentObservable<U>> converter) {
+        return new FlatMapObservable<T, U>(this, converter);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void onResult(@Nullable Intent data) {
-        if (observer instanceof IResultCallback) {
-            ((IResultCallback<T>) observer).onResult(defaultConverter.convert(data));
-        } else {
-            observer.onNext(data);
+    public void dispose() {
+        if (!cancelled) {
+            cancelled = true;
         }
     }
 
     @Override
-    public void onError(Throwable t) {
-        observer.onError(t);
+    public boolean isDisposed() {
+        return cancelled;
     }
-
-    <U> RxIntentObservable<U> flatMap(final IConverter<T, RxIntentObservable<U>> converter) {
-        return new FlatMapObservable<>(this, converter);
-    }
-
 }

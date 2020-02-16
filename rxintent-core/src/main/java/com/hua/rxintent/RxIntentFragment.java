@@ -23,7 +23,6 @@ import io.reactivex.functions.Consumer;
  * @version 1.0
  * @date 2018/11/4
  */
-@SuppressWarnings("ConstantConditions")
 public class RxIntentFragment extends Fragment {
     private static final int WHAT_START_REQUEST_PERMISSIONS = 1;
     private static final int WHAT_START_REQUEST_INTENT = 2;
@@ -112,7 +111,7 @@ public class RxIntentFragment extends Fragment {
         return null;
     }
 
-    void sendIntentRequest(IntentRequest request) {
+    private void sendIntentRequest(IntentRequest request) {
         handler.obtainMessage(WHAT_START_REQUEST_PERMISSIONS, request).sendToTarget();
     }
 
