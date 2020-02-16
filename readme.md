@@ -53,7 +53,7 @@ RxIntent.openCamera(MainActivity.this)
             }
         });
 ```
-如果系统时某些权限没申请到，则会抛出RxIntentPermissionException异常，在onError中处理即可。
+如果启动系统应用时某些权限没申请到，则会抛出RxIntentPermissionException异常，在onError中处理即可。
 
 # 三、后记
 目前RxIntent暂时只支持相机、相册、裁剪等系统应用的启动，未来还会逐步添加其他系统应用的支持。
